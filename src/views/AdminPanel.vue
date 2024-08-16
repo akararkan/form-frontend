@@ -1,16 +1,34 @@
 <template>
+   <div class="id-card-btn">
+    <button 
+      :class="[isCardActive ? 'act-card active' : 'act-card inactive']" 
+      @click="toggleCardActivation"
+    >
+      {{ isCardActive ? "Deactivate ID Card" : "Activate ID Card" }}
+    </button>
+  </div>
+
   <div class="admin-panel">
     <h1>Admin Panel</h1>
     <!-- "See All Responses" Button -->
     <div class="top-buttons">
-      <button @click="viewAllResponses" class="btn-view-responses">See All Responses</button>
+      <button @click="viewAllResponses" class="btn-view-responses">
+        See All Responses
+      </button>
+      <button @click="viewIdCardDashBoard" class="btn-view-responses">Id Cards</button>
+      <button @click="logout" class="btn-view-responses">Log out</button>
     </div>
-    
+
     <!-- Form to create a new question -->
     <form @submit.prevent="createQuestion" class="form">
       <div class="form-group">
         <label for="questionText">Question Text:</label>
-        <input v-model="newQuestion.text" type="text" id="questionText" required />
+        <input
+          v-model="newQuestion.text"
+          type="text"
+          id="questionText"
+          required
+        />
       </div>
       <div class="form-group">
         <label for="questionType">Question Type:</label>
@@ -23,14 +41,27 @@
 
       <!-- Section to add multiple choice options -->
       <div v-if="newQuestion.type === 'MULTIPLE_CHOICE'" class="form-group">
-        <div v-for="(option, index) in newQuestion.options" :key="index" class="form-group-option">
+        <div
+          v-for="(option, index) in newQuestion.options"
+          :key="index"
+          class="form-group-option"
+        >
           <label :for="'option' + index">Option {{ index + 1 }}:</label>
-          <input v-model="newQuestion.options[index]" :id="'option' + index" type="text" required />
-          <button type="button" @click="removeOption(index)" class="btn-remove">Remove</button>
+          <input
+            v-model="newQuestion.options[index]"
+            :id="'option' + index"
+            type="text"
+            required
+          />
+          <button type="button" @click="removeOption(index)" class="btn-remove">
+            Remove
+          </button>
         </div>
-        <button type="button" @click="addOption" class="btn-add">Add Option</button>
+        <button type="button" @click="addOption" class="btn-add">
+          Add Option
+        </button>
       </div>
-      
+
       <button type="submit" class="btn-submit">Add Question</button>
     </form>
 
@@ -48,11 +79,20 @@
         <tr v-for="question in questions" :key="question.id">
           <td>{{ question.text }}</td>
           <td>{{ question.type }}</td>
-          <td v-if="question.type === 'MULTIPLE_CHOICE'">{{ question.options.join(', ') }}</td>
+          <td v-if="question.type === 'MULTIPLE_CHOICE'">
+            {{ question.options.join(", ") }}
+          </td>
           <td v-else>N/A</td>
           <td class="actions-cell">
-            <button @click="editQuestion(question)" class="btn-action btn-edit">Edit</button>
-            <button @click="confirmDeleteQuestion(question.id)" class="btn-action btn-delete">Delete</button>
+            <button @click="editQuestion(question)" class="btn-action btn-edit">
+              Edit
+            </button>
+            <button
+              @click="confirmDeleteQuestion(question.id)"
+              class="btn-action btn-delete"
+            >
+              Delete
+            </button>
           </td>
         </tr>
       </tbody>
@@ -62,13 +102,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios'; // Ensure axios is installed
-import { useRouter } from 'vue-router'; // Import useRouter
+import { useCardStore } from "../store";
+import { ref, onMounted, computed } from "vue";
+import axios from "axios"; // Ensure axios is installed
+import { useRouter } from "vue-router"; // Import useRouter
+import { defineStore } from "pinia";
 
 const router = useRouter();
 // Reactive variables
-const newQuestion = ref({ text: '', type: 'TEXT', options: [] });
+
+const cardStore = useCardStore();
+
+const toggleCardActivation = () => {
+  if (cardStore.isCardActive) {
+    cardStore.deactivateCard();
+    
+  } else {
+    cardStore.activateCard();
+  }
+};
+
+const isCardActive = computed(() => cardStore.isCardActive);
+
+const newQuestion = ref({ text: "", type: "TEXT", options: [] });
 const questions = ref([]);
 const editingQuestion = ref(null);
 
@@ -77,18 +133,26 @@ const createQuestion = async () => {
   try {
     if (editingQuestion.value) {
       // Update question
-      const response = await axios.put(`http://localhost:8080/questions/updateQuestion/${editingQuestion.value.id}`, newQuestion.value);
-      const index = questions.value.findIndex(q => q.id === editingQuestion.value.id);
+      const response = await axios.put(
+        `http://localhost:8080/questions/updateQuestion/${editingQuestion.value.id}`,
+        newQuestion.value
+      );
+      const index = questions.value.findIndex(
+        (q) => q.id === editingQuestion.value.id
+      );
       questions.value[index] = response.data;
       editingQuestion.value = null;
     } else {
       // Create new question
-      const response = await axios.post('http://localhost:8080/questions/addQuestion', newQuestion.value);
+      const response = await axios.post(
+        "http://localhost:8080/questions/addQuestion",
+        newQuestion.value
+      );
       questions.value.push(response.data);
     }
-    newQuestion.value = { text: '', type: 'TEXT', options: [] }; // Clear the form
+    newQuestion.value = { text: "", type: "TEXT", options: [] }; // Clear the form
   } catch (error) {
-    console.error('Error saving question:', error);
+    console.error("Error saving question:", error);
   }
 };
 
@@ -100,7 +164,7 @@ const editQuestion = (question) => {
 
 // Function to confirm deletion of a question
 const confirmDeleteQuestion = (id) => {
-  if (window.confirm('Are you sure you want to delete this question?')) {
+  if (window.confirm("Are you sure you want to delete this question?")) {
     deleteQuestion(id);
   }
 };
@@ -109,15 +173,15 @@ const confirmDeleteQuestion = (id) => {
 const deleteQuestion = async (id) => {
   try {
     await axios.delete(`http://localhost:8080/questions/deleteQuestion/${id}`);
-    questions.value = questions.value.filter(q => q.id !== id);
+    questions.value = questions.value.filter((q) => q.id !== id);
   } catch (error) {
-    console.error('Error deleting question:', error);
+    console.error("Error deleting question:", error);
   }
 };
 
 // Function to add a new option
 const addOption = () => {
-  newQuestion.value.options.push('');
+  newQuestion.value.options.push("");
 };
 
 // Function to remove an option
@@ -129,16 +193,32 @@ const removeOption = (index) => {
 const fetchQuestions = async () => {
   try {
     // Replace with your Spring Boot API URL
-    const response = await axios.get('http://localhost:8080/questions/getAllQuestion');
+    const response = await axios.get(
+      "http://localhost:8080/questions/getAllQuestion"
+    );
     questions.value = response.data;
   } catch (error) {
-    console.error('Error fetching questions:', error);
+    console.error("Error fetching questions:", error);
   }
 };
 const viewAllResponses = () => {
   // Navigate to responses page, assuming Vue Router is used
-  router.push('/responses');
+  router.push("/responses");
 };
+
+const logout = async () => {
+  try {
+    await axios.post("http://localhost:8080/api/v1/user/logout");
+    localStorage.removeItem("token");
+    router.push("/login");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
+const viewIdCardDashBoard = () =>{
+  router.push("/idCard-dashboard")
+}
 
 // Fetch questions when the component is mounted
 onMounted(fetchQuestions);
@@ -147,7 +227,7 @@ onMounted(fetchQuestions);
 <style>
 body {
   background-color: #f0f2f5;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -240,7 +320,8 @@ h1 {
   background-color: #c0392b;
 }
 
-.btn-add, .btn-submit {
+.btn-add,
+.btn-submit {
   padding: 12px 25px;
   border: none;
   background-color: #3498db;
@@ -251,7 +332,8 @@ h1 {
   transition: background-color 0.3s;
 }
 
-.btn-add:hover, .btn-submit:hover {
+.btn-add:hover,
+.btn-submit:hover {
   background-color: #2980b9;
 }
 
@@ -265,7 +347,8 @@ h1 {
   overflow: hidden;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   border: 1px solid #ddd;
   padding: 15px;
   text-align: left;
@@ -331,6 +414,7 @@ h1 {
 
 .btn-view-responses {
   padding: 12px 25px;
+  margin-left: 10px;
   border: none;
   background-color: #3498db;
   color: #fff;
@@ -342,5 +426,39 @@ h1 {
 
 .btn-view-responses:hover {
   background-color: #2980b9;
+}
+
+.act-card {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.act-card.active {
+  background-color: #4caf50;
+}
+
+.act-card.inactive {
+  background-color: #f44336;
+}
+
+.act-card:hover {
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.act-card:active {
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.id-card-btn {
+  position: fixed;
+  margin-left: 20px;
 }
 </style>

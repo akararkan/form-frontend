@@ -4,6 +4,9 @@
       <h1>Welcome to the Survey App</h1>
     </div>
     <div class="button-container">
+      <router-link v-if="isCardActive" to="/id-card">
+        <button class="btn">Fill Out ID Card</button>
+      </router-link>
       <router-link to="/login">
         <button class="btn">Participate as Admin</button>
       </router-link>
@@ -15,8 +18,14 @@
 </template>
 
 <script setup>
-// No script needed for this component
+import { computed } from 'vue';
+import { useCardStore } from '../store';
+
+const cardStore = useCardStore();
+const isCardActive = computed(() => cardStore.isCardActive);
 </script>
+
+
 
 <style>
 * {

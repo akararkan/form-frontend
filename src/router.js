@@ -5,6 +5,8 @@ import AdminPanel from './views/AdminPanel.vue';
 import UserPanel from './views/UserPanel.vue';
 import Login from './views/Login.vue';
 import Response from './views/Response.vue';
+import IdCard from './views/IdCard.vue';
+import IdCardsDashBoard from './views/IdCardsDashBoard.vue';
 
 import {jwtDecode} from 'jwt-decode';
 
@@ -13,7 +15,9 @@ const routes = [
   { path: '/login', component: Login },
   { path: '/admin-dashboard', component: AdminPanel, meta: { requiresAuth: true } },
   { path: '/user', component: UserPanel },
-  {path: "/responses", component: Response}
+  {path: "/responses", component: Response},
+  {path: "/id-card" , component: IdCard},
+  {path: "/idCard-dashboard", component: IdCardsDashBoard}
 ];
 
 const router = createRouter({

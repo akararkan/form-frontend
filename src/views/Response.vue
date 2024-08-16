@@ -1,102 +1,116 @@
 <template>
-    <div class="responses-container">
-      <h1>All Responses</h1>
-      <!-- Search Bar -->
-      <input
-        v-model="searchQuery"
-        @input="filterResponses"
-        type="text"
-        placeholder="Search responses..."
-        class="search-bar"
-      />
-      <div v-if="filteredResponses.length" class="response-table-container">
-        <table class="response-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Answers</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="response in filteredResponses" :key="response.id">
-              <td>{{ response.name }}</td>
-              <td>{{ response.email }}</td>
-              <td>{{ response.phone }}</td>
-              <td>
-                <ul>
-                  <li v-for="(answer, questionId) in response.answers" :key="questionId">
-                    <strong>Question {{ questionId }}:</strong> {{ answer }}
-                  </li>
-                </ul>
-              </td>
-              <td class="actions-cell">
-                <button @click="confirmDeleteResponse(response.id)" class="btn-action btn-delete">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-else>No responses available.</p>
+  <button class="back-btn" @click="goBack">Go Back</button>
+  <div class="responses-container">
+    <h1>All Responses</h1>
+    <!-- Search Bar -->
+    <input
+      v-model="searchQuery"
+      @input="filterResponses"
+      type="text"
+      placeholder="Search responses..."
+      class="search-bar"
+    />
+    <div v-if="filteredResponses.length" class="response-table-container">
+      <table class="response-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Answers</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="response in filteredResponses" :key="response.id">
+            <td>{{ response.name }}</td>
+            <td>{{ response.email }}</td>
+            <td>{{ response.phone }}</td>
+            <td>
+              <ul>
+                <li
+                  v-for="(answer, questionId) in response.answers"
+                  :key="questionId"
+                >
+                  <strong>Question {{ questionId }}:</strong> {{ answer }}
+                </li>
+              </ul>
+            </td>
+            <td class="actions-cell">
+              <button
+                @click="confirmDeleteResponse(response.id)"
+                class="btn-action btn-delete"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, computed } from 'vue';
-  import axios from 'axios';
-  
-  const responses = ref([]);
-  const searchQuery = ref('');
-  const filteredResponses = ref([]);
-  
-  const fetchResponses = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/responses/allResponses');
-      responses.value = response.data;
-      filteredResponses.value = responses.value; // Initialize filtered responses
-    } catch (error) {
-      console.error('Error fetching responses:', error);
-    }
-  };
-  
-  const filterResponses = () => {
-    filteredResponses.value = responses.value.filter(response =>
+    <p v-else>No responses available.</p>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from "vue";
+import axios from "axios";
+
+const responses = ref([]);
+const searchQuery = ref("");
+const filteredResponses = ref([]);
+
+const fetchResponses = async () => {
+  try {
+    const response = await axios.get(
+      "http://localhost:8080/responses/allResponses"
+    );
+    responses.value = response.data;
+    filteredResponses.value = responses.value; // Initialize filtered responses
+  } catch (error) {
+    console.error("Error fetching responses:", error);
+  }
+};
+
+const filterResponses = () => {
+  filteredResponses.value = responses.value.filter(
+    (response) =>
       response.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       response.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       response.phone.includes(searchQuery.value) ||
-      Object.values(response.answers).some(answer =>
+      Object.values(response.answers).some((answer) =>
         answer.toLowerCase().includes(searchQuery.value.toLowerCase())
       )
-    );
-  };
-  
-  
-  
-  const confirmDeleteResponse = (id) => {
-    if (window.confirm('Are you sure you want to delete this response?')) {
-      deleteResponse(id);
-    }
-  };
-  
-  const deleteResponse = async (id) => {
-    try {
-      await axios.delete(`http://localhost:8080/responses/deleteResponse/${id}`);
-      responses.value = responses.value.filter(response => response.id !== id);
-      filterResponses(); // Update filtered responses after deletion
-    } catch (error) {
-      console.error('Error deleting response:', error);
-    }
-  };
-  
-  onMounted(fetchResponses);
-  </script>
-  
-  <style>
-  body {
+  );
+};
+
+const confirmDeleteResponse = (id) => {
+  if (window.confirm("Are you sure you want to delete this response?")) {
+    deleteResponse(id);
+  }
+};
+
+const deleteResponse = async (id) => {
+  try {
+    await axios.delete(`http://localhost:8080/responses/deleteResponse/${id}`);
+    responses.value = responses.value.filter((response) => response.id !== id);
+    filterResponses(); // Update filtered responses after deletion
+  } catch (error) {
+    console.error("Error deleting response:", error);
+  }
+};
+
+const goBack = () => {
+  router.back();
+};
+
+onMounted(fetchResponses);
+</script>
+
+<style>
+body {
   background-color: #e9ecf0;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -204,5 +218,20 @@ h1 {
   background-color: #c82333;
 }
 
-  </style>
-  
+.back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #f44336; /* Red color for the back button */
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  background-color: #e53935;
+}
+</style>
