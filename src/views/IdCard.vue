@@ -1,6 +1,5 @@
-
 <template>
-      <button class="back-btn" @click="goBack">Go Back</button>
+  <button class="back-btn" @click="goBack">Go Back</button>
 
   <div class="form-container">
     <h1 class="form-title">ID Card Form</h1>
@@ -50,56 +49,46 @@
       </div>
       <!-- Buttons placed below the ID card -->
       <div class="download-buttons">
-        <button @click="downloadAsImage" class="download-btn">
-          Download as Image
-        </button>
-        <button @click="downloadAsPDF" class="download-btn">
-          Download as PDF
-        </button>
+        <button @click="downloadAsImage" class="download-btn">Download as Image</button>
+        <button @click="downloadAsPDF" class="download-btn">Download as PDF</button>
       </div>
     </div>
   </div>
 </template>
 
-
-
 <script setup>
-import { reactive, ref, nextTick } from "vue";
-import axios from "axios";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import QRCode from "qrcode";
-import { useRouter } from "vue-router";
+import { reactive, ref, nextTick } from 'vue';
+import axios from 'axios';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
 const form = reactive({
-  fullname: "",
-  city: "",
+  fullname: '',
+  city: '',
   age: null,
-  department: "",
+  department: '',
+  uniqueToken: generateUniqueToken(), // Add unique token field
 });
 
 const showModal = ref(false);
 const idCard = ref(null);
-const qrCodeUrl = ref("");
+const qrCodeUrl = ref('');
 
 const submitForm = async () => {
   try {
-    const response = await axios.post("http://localhost:8080/id-card/save", {
-      fullname: form.fullname,
-      city: form.city,
-      age: form.age,
-      department: form.department,
-    });
-    console.log("Form submitted successfully:", response.data);
-    alert("ID Card updated successfully!");
-    alert("We will send your ID response soon. Please check your email.");
+    const response = await axios.post('http://localhost:8080/id-card/save', form);
+    console.log('Form submitted successfully:', response.data);
+    alert('ID Card updated successfully!');
+    alert('We will send your ID response soon. Please check your email.');
     generateQRCode();
     showModal.value = true;
   } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("Failed to update ID Card.");
+    console.error('Error submitting form:', error);
+    alert('Failed to update ID Card.');
   }
 };
 
@@ -112,7 +101,7 @@ const generateQRCode = async () => {
       margin: 1,
     });
   } catch (error) {
-    console.error("Error generating QR code:", error);
+    console.error('Error generating QR code:', error);
   }
 };
 
@@ -123,47 +112,45 @@ const closeModal = () => {
 const downloadAsImage = async () => {
   if (!idCard.value) return;
   const canvas = await html2canvas(idCard.value);
-  const imgData = canvas.toDataURL("image/png");
-  const link = document.createElement("a");
+  const imgData = canvas.toDataURL('image/png');
+  const link = document.createElement('a');
   link.href = imgData;
-  link.download = "id-card.png";
+  link.download = 'id-card.png';
   link.click();
-  router.push("/");
+  router.push('/');
 };
 
 const downloadAsPDF = async () => {
   if (!idCard.value) return;
   const canvas = await html2canvas(idCard.value);
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("p", "mm", "a4");
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
   const imgWidth = 210;
   const pageHeight = 295;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
   let heightLeft = imgHeight;
 
-  pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
   heightLeft -= pageHeight;
 
   while (heightLeft >= 0) {
     pdf.addPage();
-    pdf.addImage(
-      imgData,
-      "PNG",
-      0,
-      heightLeft - imgHeight,
-      imgWidth,
-      imgHeight
-    );
+    pdf.addImage(imgData, 'PNG', 0, heightLeft - imgHeight, imgWidth, imgHeight);
     heightLeft -= pageHeight;
   }
 
-  pdf.save("id-card.pdf");
-  router.push("/");
+  pdf.save('id-card.pdf');
+  router.push('/');
 };
 
 const goBack = () => {
   router.back();
 };
+
+// Generate a unique token for each form submission
+function generateUniqueToken() {
+  return Math.random().toString(36).substr(2, 16); // Generate a 16-character token
+}
 </script>
 
 <style scoped>

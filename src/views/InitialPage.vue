@@ -1,77 +1,133 @@
 <template>
   <div class="main-page">
-    <div class="header">
+    <header>
       <h1>Welcome to the Survey App</h1>
-    </div>
-    <div class="button-container">
-      <router-link v-if="isCardActive" to="/id-card">
-        <button class="btn">Fill Out ID Card</button>
+    </header>
+    
+    <nav class="button-container">
+      <router-link v-if="isCardActive" to="/id-card" custom v-slot="{ navigate }">
+        <button @click="navigate" class="btn">Fill Out ID Card</button>
       </router-link>
-      <router-link to="/login">
-        <button class="btn">Participate as Admin</button>
+      <router-link to="/login" custom v-slot="{ navigate }">
+        <button @click="navigate" class="btn">Participate as Admin</button>
       </router-link>
-      <router-link to="/user">
-        <button class="btn">Participate as Normal User</button>
+      <router-link to="/user" custom v-slot="{ navigate }">
+        <button @click="navigate" class="btn">Participate as Normal User</button>
       </router-link>
-    </div>
+    </nav>
+
+    <section class="scanner-container">
+      <h2>Scan QR Code with Camera</h2>
+      <video ref="video" width="300" height="200"></video>
+      <canvas ref="canvas" style="display: none;"></canvas>
+      <div v-if="decodedContent" class="qr-result">
+        <p>QR Code Content: {{ decodedContent }}</p>
+        <p v-if="isValid !== null" :class="{ 'valid': isValid, 'invalid': !isValid }">
+          QR Code is: {{ isValid ? 'Valid' : 'Invalid' }}
+        </p>
+      </div>
+      <p v-if="error" class="error-message">{{ error }}</p>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { BrowserMultiFormatReader } from '@zxing/library';
+import axios from 'axios';
 import { useCardStore } from '../store';
-
+import { computed } from 'vue';
 const cardStore = useCardStore();
 const isCardActive = computed(() => cardStore.isCardActive);
+
+const video = ref(null);
+const canvas = ref(null);
+const decodedContent = ref('');
+const isValid = ref(null);
+const error = ref('');
+
+let codeReader;
+
+onMounted(() => {
+  initializeScanner();
+});
+
+onUnmounted(() => {
+  resetScanner();
+});
+
+const initializeScanner = async () => {
+  try {
+    codeReader = new BrowserMultiFormatReader();
+    await codeReader.decodeFromVideoDevice(null, video.value, handleScan);
+  } catch (err) {
+    error.value = `Camera initialization failed: ${err.message}`;
+    console.error('Camera initialization failed:', err);
+  }
+};
+
+const resetScanner = () => {
+  if (codeReader) {
+    codeReader.reset();
+  }
+};
+
+const handleScan = async (result, err) => {
+  if (result) {
+    decodedContent.value = result.getText();
+    console.log('QR Code Content:', decodedContent.value);
+    await validateQrCode(decodedContent.value);
+  }
+  if (err && !(err instanceof codeReader.NotFoundException)) {
+    error.value = `Scanning error: ${err.message}`;
+    console.error('Scanning error:', err);
+  }
+};
+
+const validateQrCode = async (data) => {
+  try {
+    const response = await axios.post('http://localhost:8080/id-card/validate-qr-code', { data });
+    isValid.value = response.data.isValid;
+  } catch (err) {
+    error.value = `Validation error: ${err.message}`;
+    console.error('Error validating QR code:', err);
+    isValid.value = false;
+  }
+};
 </script>
 
-
-
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body, html {
-  height: 100%;
-  font-family: 'Arial', sans-serif;
-}
-
+<style scoped>
 .main-page {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 2rem;
   background: linear-gradient(135deg, #2980b9, #6dd5fa, #ffffff);
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+header h1 {
+  font-size: 2.5rem;
   color: #fff;
-  text-align: center;
-}
-
-.header {
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
+  margin-bottom: 2rem;
 }
 
 .button-container {
   display: flex;
-  gap: 20px;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .btn {
-  padding: 15px 30px;
-  font-size: 1.2em;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #fff;
   background-color: #2980b9;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -80,7 +136,44 @@ body, html {
   background-color: #1a5a7a;
 }
 
-.router-link-active {
-  text-decoration: none;
+.scanner-container {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.scanner-container h2 {
+  margin-bottom: 1rem;
+  color: #2980b9;
+}
+
+video {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.qr-result {
+  margin-top: 1rem;
+}
+
+.qr-result p {
+  margin-bottom: 0.5rem;
+}
+
+.valid {
+  color: green;
+}
+
+.invalid {
+  color: red;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 1rem;
 }
 </style>
