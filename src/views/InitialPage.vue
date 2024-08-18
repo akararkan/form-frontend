@@ -16,18 +16,7 @@
       </router-link>
     </nav>
 
-    <section class="scanner-container">
-      <h2>Scan QR Code with Camera</h2>
-      <video ref="video" width="300" height="200"></video>
-      <canvas ref="canvas" style="display: none;"></canvas>
-      <div v-if="decodedContent" class="qr-result">
-        <p>QR Code Content: {{ decodedContent }}</p>
-        <p v-if="isValid !== null" :class="{ 'valid': isValid, 'invalid': !isValid }">
-          QR Code is: {{ isValid ? 'Valid' : 'Invalid' }}
-        </p>
-      </div>
-      <p v-if="error" class="error-message">{{ error }}</p>
-    </section>
+    
   </div>
 </template>
 
@@ -40,60 +29,7 @@ import { computed } from 'vue';
 const cardStore = useCardStore();
 const isCardActive = computed(() => cardStore.isCardActive);
 
-const video = ref(null);
-const canvas = ref(null);
-const decodedContent = ref('');
-const isValid = ref(null);
-const error = ref('');
 
-let codeReader;
-
-onMounted(() => {
-  initializeScanner();
-});
-
-onUnmounted(() => {
-  resetScanner();
-});
-
-const initializeScanner = async () => {
-  try {
-    codeReader = new BrowserMultiFormatReader();
-    await codeReader.decodeFromVideoDevice(null, video.value, handleScan);
-  } catch (err) {
-    error.value = `Camera initialization failed: ${err.message}`;
-    console.error('Camera initialization failed:', err);
-  }
-};
-
-const resetScanner = () => {
-  if (codeReader) {
-    codeReader.reset();
-  }
-};
-
-const handleScan = async (result, err) => {
-  if (result) {
-    decodedContent.value = result.getText();
-    console.log('QR Code Content:', decodedContent.value);
-    await validateQrCode(decodedContent.value);
-  }
-  if (err && !(err instanceof codeReader.NotFoundException)) {
-    error.value = `Scanning error: ${err.message}`;
-    console.error('Scanning error:', err);
-  }
-};
-
-const validateQrCode = async (data) => {
-  try {
-    const response = await axios.post('http://localhost:8080/id-card/validate-qr-code', { data });
-    isValid.value = response.data.isValid;
-  } catch (err) {
-    error.value = `Validation error: ${err.message}`;
-    console.error('Error validating QR code:', err);
-    isValid.value = false;
-  }
-};
 </script>
 
 <style scoped>
@@ -112,6 +48,7 @@ header h1 {
   font-size: 2.5rem;
   color: #fff;
   margin-bottom: 2rem;
+  margin-top: 220px;
 }
 
 .button-container {

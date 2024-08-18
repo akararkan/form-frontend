@@ -1,97 +1,85 @@
 <template>
-    <div class="dashboard">
-      <h1>Id Cards Dashboard</h1>
-  
-      <!-- Table for displaying ID cards -->
-      <table class="id-cards-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Full Name</th>
-            <th>City</th>
-            <th>Age</th>
-            <th>Department</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="card in idCards" :key="card.id">
-            <td>{{ card.id }}</td>
-            <td>{{ card.fullname }}</td>
-            <td>{{ card.city }}</td>
-            <td>{{ card.age }}</td>
-            <td>{{ card.department }}</td>
-            <td>
-              <button class="delete-btn" @click="deleteCard(card.id)">Delete</button>
-              <button class="send-response-btn" @click="sendResponse(card.id)">Send Response</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-  
-      <!-- Button to send response to all users -->
-      <button class="send-all-btn" @click="sendResponseToAll">Send Response to All</button>
-    </div>
-  </template>
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import axios from 'axios';
-  
-  // State to hold ID cards data
-  const idCards = ref([]);
-  
-  // Fetch all ID cards on component mount
-  const fetchIdCards = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/id-card/getAll');
-      idCards.value = response.data;
-    } catch (error) {
-      console.error('Error fetching ID cards:', error);
-    }
-  };
-  
-  // Delete an ID card by ID
-  const deleteCard = async (id) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/v1/idcards/${id}`);
-      // Refresh the ID cards after deletion
-      fetchIdCards();
-    } catch (error) {
-      console.error('Error deleting ID card:', error);
-    }
-  };
-  
-  // Send response to a specific user
-  const sendResponse = (id) => {
-    console.log(`Send response to ID card with ID: ${id}`);
-    // Implement sending response logic here
-  };
-  
-  // Send response to all users
-  const sendResponseToAll = () => {
-    console.log('Send response to all users');
-    // Implement sending response to all users logic here
-  };
-  
-  onMounted(fetchIdCards);
-  </script>
+  <div>
+    <button type="button" class="back-btn" @click="goBack">Go Back</button>
+   </div>
+  <div class="dashboard">
+    <h1>Id Cards Dashboard</h1>
 
 
+    <!-- Table for displaying ID cards -->
+    <table class="id-cards-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>City</th>
+          <th>Age</th>
+          <th>Department</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="card in idCards" :key="card.id">
+          <td>{{ card.id }}</td>
+          <td>{{ card.fullname }}</td>
+          <td>{{ card.city }}</td>
+          <td>{{ card.age }}</td>
+          <td>{{ card.department }}</td>
+          <td>
+            <button class="delete-btn" @click="confirmDelete(card.id)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
+// State to hold ID cards data
+const idCards = ref([]);
 
+// Fetch all ID cards on component mount
+const fetchIdCards = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/id-card/getAll');
+    idCards.value = response.data;
+  } catch (error) {
+    console.error('Error fetching ID cards:', error);
+  }
+};
 
+// Confirm before deleting an ID card
+const confirmDelete = async (id) => {
+  const confirmed = confirm('Are you sure you want to delete this ID card?');
+  if (confirmed) {
+    deleteCard(id);
+  }
+};
 
+// Delete an ID card by ID
+const deleteCard = async (id) => {
+  try {
+    await axios.delete(`http://localhost:8080/id-card/delete/${id}`);
+    // Refresh the ID cards after deletion
+    fetchIdCards();
+  } catch (error) {
+    console.error('Error deleting ID card:', error);
+  }
+};
 
+function goBack(){
+  router.push("/")
+}
 
-
-
-
-
-
-
-
-
+onMounted(fetchIdCards);
+</script>
 
 <style>
 .dashboard {

@@ -1,17 +1,20 @@
 <template>
-   <div class="id-card-btn">
-    <button 
-      :class="[isCardActive ? 'act-card active' : 'act-card inactive']" 
-      @click="toggleCardActivation"
-    >
-      {{ isCardActive ? "Deactivate ID Card" : "Activate ID Card" }}
-    </button>
-  </div>
+   <div>
+    <button type="button" class="back-btn" @click="goBack">Go Back</button>
+   </div>
+  
 
   <div class="admin-panel">
     <h1>Admin Panel</h1>
     <!-- "See All Responses" Button -->
     <div class="top-buttons">
+      <button 
+      :class="[isCardActive ? 'act-card active' : 'act-card inactive']" 
+      @click="toggleCardActivation"
+    >
+      {{ isCardActive ? "Deactivate ID Card" : "Activate ID Card" }}
+    </button>
+    <button class="btn-view-responses" @click="qrbtn">qr code</button>
       <button @click="viewAllResponses" class="btn-view-responses">
         See All Responses
       </button>
@@ -220,6 +223,14 @@ const viewIdCardDashBoard = () =>{
   router.push("/idCard-dashboard")
 }
 
+const qrbtn = () => {
+  router.push("/qr-page")
+}
+
+function goBack(){
+  router.push("/")
+}
+
 // Fetch questions when the component is mounted
 onMounted(fetchQuestions);
 </script>
@@ -408,7 +419,7 @@ h1 {
 }
 .top-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
@@ -460,5 +471,7 @@ h1 {
 .id-card-btn {
   position: fixed;
   margin-left: 20px;
+  display: flex;
+  flex-direction: column;
 }
 </style>

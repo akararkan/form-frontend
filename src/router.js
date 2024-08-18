@@ -7,6 +7,7 @@ import Login from './views/Login.vue';
 import Response from './views/Response.vue';
 import IdCard from './views/IdCard.vue';
 import IdCardsDashBoard from './views/IdCardsDashBoard.vue';
+import QrCode from "./views/QrCode.vue"
 
 import {jwtDecode} from 'jwt-decode';
 
@@ -17,7 +18,8 @@ const routes = [
   { path: '/user', component: UserPanel },
   {path: "/responses", component: Response},
   {path: "/id-card" , component: IdCard},
-  {path: "/idCard-dashboard", component: IdCardsDashBoard}
+  {path: "/idCard-dashboard", component: IdCardsDashBoard},
+  {path: "/qr-page" , component: QrCode}
 ];
 
 const router = createRouter({
