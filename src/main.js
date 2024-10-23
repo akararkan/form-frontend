@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';  // Import the router configuration
+import router from './router.js';  // Import the router configuration
 import { createPinia } from 'pinia';
 const pinia = createPinia();
 
